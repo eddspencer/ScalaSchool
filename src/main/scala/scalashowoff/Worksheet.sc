@@ -133,3 +133,14 @@ def firstNPrimes(n: Int): List[Int] = {
 }
 
 firstNPrimes(10)
+
+// implicit conversions
+implicit def simpleClassConv(sc: SimpleClass): MyClass = {
+  val mc= MyClass(sc.msg)
+  mc.msg = "Converted"
+  mc
+}
+
+def getMsgs(data: MyClass): String = data.msgs.mkString(", ")
+
+getMsgs(SimpleClass("Simples"))
