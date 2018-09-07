@@ -57,12 +57,56 @@ closure()
 def magic(x: Int): Int = x + 42
 Seq.range(0, 10).map(magic)
 
-// Case classes and default values
-case class MyClass(msg: String, createTime: Long = System.currentTimeMillis()) {
-  private val msgs = mutable.Seq.empty[String]
-  
-  def 
+// Case classes
+case class SimpleClass(msg: String)
+
+val s = SimpleClass("Simple")
+s.msg
+
+// Case classes with default values and custom accessors
+case class MyClass(private var _msg: String, createTime: Long = System.currentTimeMillis()) {
+  private val _msgs = mutable.Set(_msg)
+
+  /**
+    * Getter for message
+    *
+    * @return msg
+    */
+  def msg: String = {
+    println("Getting message")
+    _msg
+  }
+
+  /**
+    * Setter for message override
+    *
+    * @param msg message
+    */
+  def msg_=(msg: String): Unit = {
+    _msgs += msg
+    this._msg = msg
+  }
+
+  /**
+    * Get messages
+    *
+    * @return immutable snapshot of current messages
+    */
+  def msgs: Set[String] = _msgs.toSet
 }
+
+val c = MyClass("Created")
+c.createTime
+// c.createTime = 0L
+c.msg = "Updated"
+c.msgs
+
+// Companion object
+object MyClass {
+  def apply(): MyClass = MyClass("", 0L)
+}
+
+MyClass()
 
 // Pattern matching
 def explainURL(resolvedURL: ResolvedURL): String = {
@@ -76,3 +120,16 @@ def explainURL(resolvedURL: ResolvedURL): String = {
 explainURL(ResolvedURL("https://google.com"))
 explainURL(ResolvedURL("https://lockbox.com"))
 explainURL(ResolvedURL("http://bbc.com"))
+
+// Inner methods
+def firstNPrimes(n: Int): List[Int] = {
+  // Sieve of Eratosthenes
+  def sieve(s: Stream[Int]): Stream[Int] = {
+    s.head #:: sieve(s.tail.filter(_ % s.head != 0))
+  }
+
+  val primes = sieve(Stream.from(2))
+  primes.take(n).toList
+}
+
+firstNPrimes(10)
