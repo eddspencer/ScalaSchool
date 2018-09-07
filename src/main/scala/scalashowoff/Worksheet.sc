@@ -1,5 +1,7 @@
 import scalashowoff.ResolvedURL
 
+import scala.collection.mutable
+
 /**
   * Variables and types 
   */
@@ -33,6 +35,10 @@ val wrapper = Wrapper()
 wrapper.Y
 wrapper.lazyY
 
+// String concatenation
+val variable = 42
+s"This is a bit like ${"String.format"}, variable = $variable"
+
 // Currying
 def add(x: Int)(y: Int): Int = x + y
 
@@ -40,23 +46,33 @@ val add2To = add(2)(_)
 
 add2To(10)
 
+// Closures
+var outer = "This is defined outside function"
+
+val closure = () => s"Referencing a var for outside! $outer"
+
+closure()
+
+// Higher order function
+def magic(x: Int): Int = x + 42
+Seq.range(0, 10).map(magic)
+
+// Case classes and default values
+case class MyClass(msg: String, createTime: Long = System.currentTimeMillis()) {
+  private val msgs = mutable.Seq.empty[String]
+  
+  def 
+}
+
 // Pattern matching
-def explainURL(url: ResolvedURL): Unit = {
-  url match {
-    case ResolvedURL(url, _) if url.contains("google") => println(s"$url is from google")
-    case ResolvedURL(url, true) => println(s"$url is secure")
-    case _ => println(s"$url is OK I suppose")
+def explainURL(resolvedURL: ResolvedURL): String = {
+  resolvedURL match {
+    case ResolvedURL(url, _) if url.contains("google") => s"$url is from google"
+    case ResolvedURL(url, true) => s"$url is secure"
+    case _ => s"$resolvedURL is OK I suppose"
   }
 }
 
 explainURL(ResolvedURL("https://google.com"))
 explainURL(ResolvedURL("https://lockbox.com"))
 explainURL(ResolvedURL("http://bbc.com"))
-
-// Closures
-var outer = "This is defined outside function"
-
-val closure = () => println(outer)
-
-closure()
-
