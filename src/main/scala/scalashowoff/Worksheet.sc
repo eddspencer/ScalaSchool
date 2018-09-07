@@ -1,6 +1,8 @@
 import scalashowoff.ResolvedURL
 
 import scala.collection.mutable
+import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
 
 /**
   * Variables and types 
@@ -31,6 +33,7 @@ case class Wrapper() {
   }
   println("Init Wrapper")
 }
+
 val wrapper = Wrapper()
 wrapper.Y
 wrapper.lazyY
@@ -62,36 +65,27 @@ case class SimpleClass(msg: String)
 
 val s = SimpleClass("Simple")
 s.msg
+s.hashCode
+SimpleClass("Simple") == s
+s.msg
 
 // Case classes with default values and custom accessors
-case class MyClass(private var _msg: String, createTime: Long = System.currentTimeMillis()) {
+case class MyClass(
+  private var _msg: String,
+  createTime: Long = System.currentTimeMillis()
+) {
   private val _msgs = mutable.Set(_msg)
 
-  /**
-    * Getter for message
-    *
-    * @return msg
-    */
   def msg: String = {
     println("Getting message")
     _msg
   }
 
-  /**
-    * Setter for message override
-    *
-    * @param msg message
-    */
   def msg_=(msg: String): Unit = {
     _msgs += msg
     this._msg = msg
   }
 
-  /**
-    * Get messages
-    *
-    * @return immutable snapshot of current messages
-    */
   def msgs: Set[String] = _msgs.toSet
 }
 
@@ -101,12 +95,21 @@ c.createTime
 c.msg = "Updated"
 c.msgs
 
+// Named parameters
+val n = MyClass(
+  _msg = "Named",
+  createTime = 1L
+)
+
 // Companion object
 object MyClass {
-  def apply(): MyClass = MyClass("", 0L)
+  lazy val empty: MyClass = MyClass()
+
+  def apply(): MyClass = new MyClass("", 0L)
 }
 
 MyClass()
+MyClass.empty
 
 // Pattern matching
 def explainURL(resolvedURL: ResolvedURL): String = {
@@ -136,7 +139,7 @@ firstNPrimes(10)
 
 // implicit conversions
 implicit def simpleClassConv(sc: SimpleClass): MyClass = {
-  val mc= MyClass(sc.msg)
+  val mc = MyClass(sc.msg)
   mc.msg = "Converted"
   mc
 }
@@ -144,3 +147,40 @@ implicit def simpleClassConv(sc: SimpleClass): MyClass = {
 def getMsgs(data: MyClass): String = data.msgs.mkString(", ")
 
 getMsgs(SimpleClass("Simples"))
+
+// For expressions
+for (i <- 1 to 10) yield i * i
+
+// Futures
+import scala.concurrent.ExecutionContext.Implicits.global
+
+def longRunning() = Future.successful(42L)
+val f1 = for (r <- longRunning()) yield r + 1
+val f2 = longRunning().map(_ + 1)
+Await.result(f1, 1 seconds)
+Await.result(f2, 1 seconds)
+
+val f3 = for {
+  r1 <- longRunning()
+  r2 <- longRunning()
+} yield r1 + r2
+val f4 = longRunning().flatMap(r => longRunning().map(_ + r))
+Await.result(f3, 1 seconds)
+Await.result(f4, 1 seconds)
+
+// Collections
+val xs = List(4, 2, 1, 5, 3, 2, 1)
+xs.distinct.sorted.foldLeft(100)(_ * _)
+(100 :: (1 to 5).toList).product
+
+Seq(Seq(1, 2), Seq(3, 4), Seq(5, 6)).flatten.filter(_ > 1)
+
+(1 to 10) union (5 to 15)
+(1 to 10) diff (5 to 15)
+(1 to 10) intersect (5 to 15)
+
+(1 to 10) partition (_ % 2 == 0)
+
+(1 to 10).map(i => Seq.fill(i)("x").mkString).foreach(println)
+
+(1 to 10).par.foreach(println)
