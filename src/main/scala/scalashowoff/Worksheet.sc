@@ -236,12 +236,25 @@ cat.name
 wetDog.name
 
 // Operator overloading
-case class Addictive(value: Int) {
-  def +(that: Int): Addictive = Addictive(this.value + that + 100)
+case class Complex(real: Double, imag: Double) {
+
+  def +(that: Complex) =
+    Complex(this.real + that.real, this.imag + that.imag)
+
+  def -(that: Complex) =
+    Complex(this.real - that.real, this.imag - that.imag)
+
+  def unary_-(): Complex = Complex(-real, -imag)
+
+  override def toString = s"$real + ${imag}i"
 }
 
-val a = Addictive(1)
-a + 1
+val a = Complex(4.0, 5.0)
+val b = Complex(2.0, 3.0)
+a
+a + b
+a - b
+-b
 
 // Actors
 case object PingMessage
