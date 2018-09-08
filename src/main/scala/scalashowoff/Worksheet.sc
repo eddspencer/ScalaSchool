@@ -1,8 +1,10 @@
-import scalashowoff.ResolvedURL
+import akka.actor.{Actor, ActorRef, ActorSystem, Props}
+import scalashowoff.{MyJava, ResolvedURL}
 
 import scala.collection.mutable
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
+import scala.util.{Failure, Success}
 
 /**
   * Variables and types 
@@ -55,6 +57,14 @@ var outer = "This is defined outside function"
 val closure = () => s"Referencing a var for outside! $outer"
 
 closure()
+
+// Tuples
+val p = (1, "One")
+p._1
+p._2
+val (num, text) = p
+num
+text
 
 // Higher order function
 def magic(x: Int): Int = x + 42
@@ -165,6 +175,11 @@ val f3 = for {
   r2 <- longRunning()
 } yield r1 + r2
 val f4 = longRunning().flatMap(r => longRunning().map(_ + r))
+
+f4 onComplete  {
+  case Success(r) => println(s"Success! $r")
+  case Failure(error) => println(error)
+}
 Await.result(f3, 1 seconds)
 Await.result(f4, 1 seconds)
 
@@ -184,3 +199,80 @@ Seq(Seq(1, 2), Seq(3, 4), Seq(5, 6)).flatten.filter(_ > 1)
 (1 to 10).map(i => Seq.fill(i)("x").mkString).foreach(println)
 
 (1 to 10).par.foreach(println)
+
+// Java interop
+import scala.collection.JavaConverters._
+
+val j = new MyJava("Hi Java")
+j.getCreateTime
+j.getMsg
+j.setMsg("Updated")
+j.getMsgs
+j.getMsgs.asScala.toList
+
+// Mixins
+sealed trait Pet {
+  protected val _name: String
+  def name: String = _name
+}
+
+sealed trait Wet {
+  this: Pet =>
+
+  override def name: String = s"${_name} is wet"
+}
+
+case class Cat(_name: String) extends Pet
+case class Dog(_name: String) extends Pet
+
+val dog = Dog("Rover")
+val cat = Cat("Jasper")
+val wetDog = new Dog("Barks") with Wet
+
+dog.name
+cat.name
+wetDog.name
+
+// Actors
+case object PingMessage
+case object PongMessage
+case object StartMessage
+case object StopMessage
+
+class Ping(pong: ActorRef) extends Actor {
+  var count = 0
+  def incrementAndPrint { count += 1; println("ping") }
+  def receive = {
+    case StartMessage =>
+      incrementAndPrint
+      pong ! PingMessage
+    case PongMessage =>
+      incrementAndPrint
+      if (count > 5) {
+        sender ! StopMessage
+        println("ping stopped")
+        context.stop(self)
+      } else {
+        sender ! PingMessage
+      }
+  }
+}
+
+class Pong extends Actor {
+  def receive = {
+    case PingMessage =>
+      println("  pong")
+      sender ! PongMessage
+    case StopMessage =>
+      println("pong stopped")
+      context.stop(self)
+  }
+}
+
+val system = ActorSystem("PingPongSystem")
+val pong = system.actorOf(Props(new Pong()), name = "pong")
+val ping = system.actorOf(Props(new Ping(pong)), name = "ping")
+
+ping ! StartMessage
+
+Await.ready(system.whenTerminated, 5 seconds)

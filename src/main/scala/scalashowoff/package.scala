@@ -10,9 +10,9 @@ import scala.util.Try
   */
 package object scalashowoff {
 
-  case class ResolvedURL(url: String, isHttps: Boolean = false) {
-    private lazy val asURL = new URL(url)
-    lazy val host = asURL.getHost
+  case class ResolvedURL(url: String, isHttps: Boolean) {
+    private[scalashowoff] lazy val asURL = new URL(url)
+    lazy val host : String = asURL.getHost
 
     def isSameHost(other: ResolvedURL): Boolean = this.host == other.host
   }
@@ -32,12 +32,12 @@ package object scalashowoff {
     def apply(url: String): ResolvedURL = {
       url match {
         case urlRegex(protocol) => new ResolvedURL(url, isHttps = protocol == "https")
-        case _ => new ResolvedURL(s"http://$url")
+        case _ => new ResolvedURL(s"http://$url", false)
       }
     }
   }
 
-  object URLTools {
+  private[scalashowoff] object URLTools {
 
     lazy private val defaultTimeOut = 5 seconds
     lazy private val timer = new Timer()
