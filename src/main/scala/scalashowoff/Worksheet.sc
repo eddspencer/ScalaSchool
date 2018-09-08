@@ -71,19 +71,19 @@ def magic(x: Int): Int = x + 42
 Seq.range(0, 10).map(magic)
 
 // Case classes
-case class SimpleClass(msg: String)
+case class SimpleClass(msg: String, var ts: Long)
 
-val s = SimpleClass("Simple")
+val s = SimpleClass("Simple", 0)
 s.msg
 s.hashCode
-SimpleClass("Simple") == s
+SimpleClass("Simple", 0) == s
 s.msg
+s.ts
+s.ts = 42L
+s.ts
 
 // Case classes with default values and custom accessors
-case class MyClass(
-  private var _msg: String,
-  createTime: Long = System.currentTimeMillis()
-) {
+case class MyClass(private var _msg: String, createTime: Long = System.currentTimeMillis()) {
   private val _msgs = mutable.Set(_msg)
 
   def msg: String = {
@@ -156,7 +156,7 @@ implicit def simpleClassConv(sc: SimpleClass): MyClass = {
 
 def getMsgs(data: MyClass): String = data.msgs.mkString(", ")
 
-getMsgs(SimpleClass("Simples"))
+getMsgs(SimpleClass("Simples", 0L))
 
 // For expressions
 for (i <- 1 to 10) yield i * i
@@ -176,7 +176,7 @@ val f3 = for {
 } yield r1 + r2
 val f4 = longRunning().flatMap(r => longRunning().map(_ + r))
 
-f4 onComplete  {
+f4 onComplete {
   case Success(r) => println(s"Success! $r")
   case Failure(error) => println(error)
 }
@@ -213,6 +213,7 @@ j.getMsgs.asScala.toList
 // Mixins
 sealed trait Pet {
   protected val _name: String
+
   def name: String = _name
 }
 
@@ -223,6 +224,7 @@ sealed trait Wet {
 }
 
 case class Cat(_name: String) extends Pet
+
 case class Dog(_name: String) extends Pet
 
 val dog = Dog("Rover")
@@ -233,15 +235,31 @@ dog.name
 cat.name
 wetDog.name
 
+// Operator overloading
+case class Addictive(value: Int) {
+  def +(that: Int): Addictive = Addictive(this.value + that + 100)
+}
+
+val a = Addictive(1)
+a + 1
+
 // Actors
 case object PingMessage
+
 case object PongMessage
+
 case object StartMessage
+
 case object StopMessage
 
 class Ping(pong: ActorRef) extends Actor {
   var count = 0
-  def incrementAndPrint { count += 1; println("ping") }
+
+  def incrementAndPrint {
+    count += 1;
+    println("ping")
+  }
+
   def receive = {
     case StartMessage =>
       incrementAndPrint
