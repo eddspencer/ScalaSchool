@@ -51,7 +51,7 @@ package object scalaschool {
 
   private[scalaschool] object URLTools {
 
-    lazy private val defaultTimeOut = 5 seconds
+    lazy private val defaultTimeOut = 2 seconds
     lazy private val timer = new Timer()
 
     /**
