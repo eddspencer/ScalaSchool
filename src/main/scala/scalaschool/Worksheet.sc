@@ -1,5 +1,6 @@
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
-import scalashowoff.{MyJava, ResolvedURL}
+import scalaschool.MyJava
+import scalaschool.ResolvedURL
 
 import scala.collection.mutable
 import scala.concurrent.duration._

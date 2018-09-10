@@ -1,4 +1,4 @@
-package scalashowoff;
+package scalaschool;
 
 import java.util.*;
 

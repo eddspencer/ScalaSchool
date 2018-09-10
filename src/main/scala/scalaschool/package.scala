@@ -1,17 +1,29 @@
+/**
+  * ***********************************************************************
+  *
+  * ECHOBOX CONFIDENTIAL
+  *
+  * All Rights Reserved.
+  *
+  * NOTICE: All information contained herein is, and remains the property of Echobox Ltd. and its
+  * suppliers, if any. The intellectual and technical concepts contained herein are proprietary to
+  * Echobox Ltd. and its suppliers and may be covered by Patents, patents in process, and are
+  * protected by trade secret or copyright law. Dissemination of this information or reproduction of
+  * this material, in any format, is strictly forbidden unless prior written permission is obtained
+  * from Echobox Ltd.
+  */
+
 import java.net.URL
 import java.util.{Timer, TimerTask}
 
+import scala.concurrent.duration.{Duration, _}
 import scala.concurrent.{ExecutionContext, Future, Promise}
-import scala.concurrent.duration._
 import scala.util.Try
 
-/**
-  * @author eddspencer
-  */
-package object scalashowoff {
+package object scalaschool {
 
   case class ResolvedURL(url: String, isHttps: Boolean) {
-    private[scalashowoff] lazy val asURL = new URL(url)
+    private[scalaschool] lazy val asURL = new URL(url)
     lazy val host : String = asURL.getHost
 
     def isSameHost(other: ResolvedURL): Boolean = this.host == other.host
@@ -37,7 +49,7 @@ package object scalashowoff {
     }
   }
 
-  private[scalashowoff] object URLTools {
+  private[scalaschool] object URLTools {
 
     lazy private val defaultTimeOut = 5 seconds
     lazy private val timer = new Timer()
