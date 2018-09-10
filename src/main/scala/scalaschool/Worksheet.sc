@@ -1,24 +1,19 @@
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
-import scalaschool.MyJava
-import scalaschool.ResolvedURL
+import scalaschool._
 
 import scala.collection.mutable
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.util.{Failure, Success}
 
-/**
-  * Variables and types 
-  */
-
 // Types do not have to be set, they can be inferred
-var x = 1
+var x = 2
 var y: Int = 1
 x == y
 
 // A val cannot be changed
 val X = 3
-X + 1
+// X += 1
 
 // A var can be changed
 x += 1
@@ -69,7 +64,9 @@ text
 
 // Higher order function
 def magic(x: Int): Int = x + 42
-Seq.range(0, 10).map(magic)
+val unMagic = (x: Int) => x - 42
+val magicNumbers = Seq.range(0, 3).map(magic)
+magicNumbers.map(unMagic)
 
 // Case classes
 case class SimpleClass(msg: String, var ts: Long)
@@ -78,14 +75,17 @@ val s = SimpleClass("Simple", 0)
 s.msg
 s.hashCode
 SimpleClass("Simple", 0) == s
-s.msg
 s.ts
 s.ts = 42L
+// s.msg = ""
 s.ts
 
 // Case classes with default values and custom accessors
-case class MyClass(private var _msg: String, createTime: Long = System.currentTimeMillis()) {
-  private val _msgs = mutable.Set(_msg)
+case class MyClass(
+  private var _msg: String,
+  createTime: Long = System.currentTimeMillis()
+) {
+  private val _msgs = mutable.ArrayBuffer(_msg)
 
   def msg: String = {
     println("Getting message")
@@ -97,17 +97,17 @@ case class MyClass(private var _msg: String, createTime: Long = System.currentTi
     this._msg = msg
   }
 
-  def msgs: Set[String] = _msgs.toSet
+  def msgs: List[String] = _msgs.toList
 }
 
-val c = MyClass("Created")
+val c = MyClass("Created", 42L)
 c.createTime
-// c.createTime = 0L
+c.msg
 c.msg = "Updated"
 c.msgs
 
 // Named parameters
-val n = MyClass(
+MyClass(
   _msg = "Named",
   createTime = 1L
 )
@@ -116,7 +116,7 @@ val n = MyClass(
 object MyClass {
   lazy val empty: MyClass = MyClass()
 
-  def apply(): MyClass = new MyClass("", 0L)
+  def apply(): MyClass = new MyClass("Default", 0L)
 }
 
 MyClass()
@@ -127,7 +127,7 @@ def explainURL(resolvedURL: ResolvedURL): String = {
   resolvedURL match {
     case ResolvedURL(url, _) if url.contains("google") => s"$url is from google"
     case ResolvedURL(url, true) => s"$url is secure"
-    case _ => s"$resolvedURL is OK I suppose"
+    case _ => s"${resolvedURL.url} is OK I suppose"
   }
 }
 
@@ -159,18 +159,24 @@ def getMsgs(data: MyClass): String = data.msgs.mkString(", ")
 
 getMsgs(SimpleClass("Simples", 0L))
 
+// For loop
+for (i <- 1 to 10) {
+  println(i * i)
+}
+
 // For expressions
 for (i <- 1 to 10) yield i * i
 
 // Futures
 import scala.concurrent.ExecutionContext.Implicits.global
 
-def longRunning() = Future.successful(42L)
-val f1 = for (r <- longRunning()) yield r + 1
-val f2 = longRunning().map(_ + 1)
+def longRunning(): Future[Long] = Future.successful(42L)
+val f1: Future[Long] = for (r <- longRunning()) yield r + 1
+val f2: Future[Long] = longRunning().map(_ + 1)
 Await.result(f1, 1 seconds)
 Await.result(f2, 1 seconds)
 
+// Running futures in series...
 val f3 = for {
   r1 <- longRunning()
   r2 <- longRunning()
@@ -211,26 +217,10 @@ j.setMsg("Updated")
 j.getMsgs
 j.getMsgs.asScala.toList
 
-// Mixins
-sealed trait Pet {
-  protected val _name: String
-
-  def name: String = _name
-}
-
-sealed trait Wet {
-  this: Pet =>
-
-  override def name: String = s"${_name} is wet"
-}
-
-case class Cat(_name: String) extends Pet
-
-case class Dog(_name: String) extends Pet
-
+// Mixins and 'sealed'
 val dog = Dog("Rover")
 val cat = Cat("Jasper")
-val wetDog = new Dog("Barks") with Wet
+val wetDog = WetDog("Barks")
 
 dog.name
 cat.name
@@ -239,11 +229,13 @@ wetDog.name
 // Operator overloading
 case class Complex(real: Double, imag: Double) {
 
-  def +(that: Complex) =
+  def +(that: Complex) = {
     Complex(this.real + that.real, this.imag + that.imag)
+  }
 
-  def -(that: Complex) =
+  def -(that: Complex) = {
     Complex(this.real - that.real, this.imag - that.imag)
+  }
 
   def unary_-(): Complex = Complex(-real, -imag)
 

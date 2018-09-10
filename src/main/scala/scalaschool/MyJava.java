@@ -10,15 +10,13 @@ public class MyJava {
     public MyJava(String msg) {
         this(msg, System.currentTimeMillis());
     }
-
-
+    
     public MyJava(String msg, long createTime) {
         this.msg = msg;
         this.msgs = new ArrayList<>();
         this.msgs.add(msg);
         this.createTime = createTime;
     }
-
 
     public String getMsg() {
         System.out.println("Getting message");

@@ -111,4 +111,21 @@ package object scalaschool {
     }
   }
 
+  sealed trait Pet {
+    protected val _name: String
+
+    def name: String = _name
+  }
+
+  sealed trait Wet {
+    this: Pet =>
+
+    override def name: String = s"${_name} is wet"
+  }
+
+  case class Cat(_name: String) extends Pet
+  case class Dog(_name: String) extends Pet
+
+  case class WetDog(_name: String) extends Pet with Wet
+
 }
